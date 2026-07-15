@@ -110,7 +110,7 @@
   /* ===== TABLE ===== */
   .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 2px rgba(31,59,87,0.04);}
   .table-scroll{overflow-x:auto;}
-  #main-table-scroll{overflow-y:auto;max-height:450px;}
+  #main-table-scroll{overflow-y:auto;max-height:2050px;}
   table{border-collapse:collapse;width:100%;font-size:13px;}
   thead th{
     background:var(--cover);color:#F3F0E8;text-align:left;padding:11px 14px;font-weight:600;
@@ -174,7 +174,7 @@
   .drow .dv{text-align:right;font-weight:500;overflow-wrap:anywhere;}
   .drow .dv.empty{color:#BFC5CE;font-weight:400;}
   .drow input, .drow select{
-    width:58%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;text-align:right;font-family:'Inter',sans-serif;
+    width:58%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;text-align:left;font-family:'Inter',sans-serif;direction:ltr;
   }
 
   /* ===== MODAL LAPORAN ===== */
@@ -392,6 +392,40 @@ const LABELS = {
   lingkar_kepala:'Lingkar Kepala (cm)', jml_saudara:'Jml. Saudara', tanggal_update:'Update Terakhir',
 };
 const COMPLETION_KEYS = ['alamat','hp','nama_ayah','nama_ibu','tanggal_lahir','nik','tempat_lahir','agama'];
+
+/* ============ PILIHAN COMBOBOX UNTUK MODE EDIT ============ */
+const OPT = {
+  agama: ['Islam','Kristen','Katolik','Hindu','Buddha','Khonghucu','Lainnya'],
+  kebutuhan_khusus: ['Ada','Tidak Ada'],
+  kecamatan: ['Tarakan Barat','Tarakan Utara','Tarakan Tengah','Tarakan Timur'],
+  jenis_tinggal: ['Bersama Orang Tua','Wali','Kos','Asrama','Panti Asuhan','Lainnya'],
+  alat_transportasi: ['Jalan kaki','Sepeda','Sepeda motor','Angkutan umum/bus/pete-pete','Ojek','Mobil/bus antar jemput','Lainnya'],
+  pendidikan: ['Tidak sekolah','Putus SD','SD / sederajat','SMP / sederajat','SMA / sederajat','D1','D2','D3','S1','S2','S3'],
+  pekerjaan: ['Tidak Bekerja','Nelayan','Petani','PNS/TNI/Polri','Pegawai Swasta','Wiraswasta','Buruh','Sopir','Tukang','Lainnya'],
+  penghasilan: ['Tidak Berpenghasilan','Kurang dari Rp. 500,000','Rp. 500,000 - Rp. 999,999','Rp. 1,000,000 - Rp. 1,999,999','Rp. 2,000,000 - Rp. 4,999,999','Rp. 5,000,000 - Rp. 20,000,000'],
+  yatidak: ['Ya','Tidak'],
+  jk: ['L','P'],
+};
+const SELECT_FIELD_MAP = {
+  agama: OPT.agama,
+  kebutuhan_khusus: OPT.kebutuhan_khusus,
+  kecamatan: OPT.kecamatan,
+  jenis_tinggal: OPT.jenis_tinggal,
+  alat_transportasi: OPT.alat_transportasi,
+  ayah_pendidikan: OPT.pendidikan,
+  ayah_pekerjaan: OPT.pekerjaan,
+  ayah_penghasilan: OPT.penghasilan,
+  ibu_pendidikan: OPT.pendidikan,
+  ibu_pekerjaan: OPT.pekerjaan,
+  ibu_penghasilan: OPT.penghasilan,
+  wali_pendidikan: OPT.pendidikan,
+  wali_pekerjaan: OPT.pekerjaan,
+  wali_penghasilan: OPT.penghasilan,
+  penerima_kps: OPT.yatidak,
+  penerima_kip: OPT.yatidak,
+  layak_pip: OPT.yatidak,
+  jk: OPT.jk,
+};
 const STATUS_LABEL = {lengkap:'Lengkap', sebagian:'Sebagian', kosong:'Belum Isi'};
 
 /* ============ STATE ============ */
@@ -613,12 +647,12 @@ function renderDrawerBody(){
     const rows = g.keys.map(k=>{
       const v = (currentDetail[k]||'').toString();
       if(editMode && k!=='rombel'){
-        if(k==='jk'){
+        if(SELECT_FIELD_MAP[k]){
+          const opts = SELECT_FIELD_MAP[k];
           return `<div class="drow"><span class="dk">${LABELS[k]||k}</span>
             <select onchange="currentDetail['${k}']=this.value">
               <option value="" ${v?'':'selected'}>Pilih...</option>
-              <option value="L" ${v==='L'?'selected':''}>L</option>
-              <option value="P" ${v==='P'?'selected':''}>P</option>
+              ${opts.map(o=>`<option value="${o}" ${v===o?'selected':''}>${o}</option>`).join('')}
             </select></div>`;
         }
         return `<div class="drow"><span class="dk">${LABELS[k]||k}</span>
