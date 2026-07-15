@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Kalender Pendidikan · SMP Negeri 14 Tarakan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#172B4D;
+    --ink-soft:#4A5568;
+    --paper:#EFF3F6;
+    --paper-line:#D8E1E8;
+    --gold:#C89B3C;
+    --gold-deep:#A87F2C;
+    --rust:#B24A3B;
+    --sage:#3F7A5C;
+    --white:#FFFFFF;
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Public Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- gate ---------- */
+  #gate{
+    position:fixed;inset:0;
+    background:var(--ink);
+    color:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .gate-box{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:var(--radius-lg);
+    padding:36px 30px;
+    max-width:340px;
+    width:100%;
+    text-align:center;
+  }
+  .gate-box .mark{
+    width:44px;height:44px;
+    border-radius:50%;
+    background:linear-gradient(155deg,var(--gold),var(--gold-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;color:var(--ink);
+    margin:0 auto 16px;
+  }
+  .gate-box h2{
+    font-family:'Fraunces',serif;
+    font-size:20px;margin:0 0 6px;
+  }
+  .gate-box p{
+    font-size:13px;color:rgba(239,243,246,0.6);
+    margin:0 0 20px;line-height:1.5;
+  }
+  .gate-box input{
+    width:100%;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:var(--radius-sm);
+    padding:11px 14px;
+    color:var(--white);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    margin-bottom:12px;
+    outline:none;
+  }
+  .gate-box input:focus{border-color:var(--gold);}
+  .gate-box button{
+    width:100%;
+    background:var(--gold);
+    color:var(--ink);
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:11px 14px;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .gate-err{color:#E08A78;font-size:12px;margin-top:10px;min-height:14px;}
+
+  /* ---------- app shell ---------- */
+  #app{display:none;min-height:100vh;}
+  .topbar{
+    background:var(--ink);
+    color:var(--paper);
+    padding:14px clamp(14px,3vw,32px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;top:0;z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:32px;height:32px;border-radius:50%;
+    background:linear-gradient(155deg,var(--gold),var(--gold-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;color:var(--ink);font-size:13px;
+  }
+  .brand-text .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;
+    text-transform:uppercase;color:var(--gold);display:block;
+  }
+  .brand-text h1{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin:0;}
+  .topbar-status{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    color:rgba(239,243,246,0.55);
+    display:flex;align-items:center;gap:8px;
+  }
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .status-dot.busy{background:var(--gold);animation:pulse 1s infinite;}
+  .status-dot.err{background:var(--rust);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  .shell{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    min-height:calc(100vh - 57px);
+  }
+  @media (max-width:800px){
+    .shell{grid-template-columns:1fr;}
+  }
+
+  .sidenav{
+    background:var(--white);
+    border-right:1px solid var(--paper-line);
+    padding:20px 12px;
+  }
+  @media (max-width:800px){
+    .sidenav{
+      display:flex;
+      overflow-x:auto;
+      border-right:none;
+      border-bottom:1px solid var(--paper-line);
+      padding:12px;
+      gap:6px;
+    }
+  }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    text-align:left;
+    padding:11px 14px;
+    border-radius:var(--radius-sm);
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:'Public Sans',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:4px;
+    white-space:nowrap;
+  }
+  .nav-item:hover{background:var(--paper);}
+  .nav-item.active{background:var(--ink);color:var(--white);}
+  .nav-count{
+    margin-left:auto;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    opacity:0.6;
+  }
+
+  .main{padding:28px clamp(14px,3vw,32px) 60px;}
+  .main-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .main-head h2{
+    font-family:'Fraunces',serif;
+    font-size:clamp(22px,3.5vw,28px);
+    margin:0;
+  }
+  .main-head p{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin:4px 0 0;
+  }
+  .btn{
+    font-family:'Public Sans',sans-serif;
+    font-size:13px;
+    font-weight:700;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:10px 18px;
+    cursor:pointer;
+    transition:transform .1s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--gold);color:var(--ink);}
+  .btn-ghost{background:var(--white);color:var(--ink);border:1px solid var(--paper-line);}
+  .btn-danger{background:transparent;color:var(--rust);}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+
+  /* ---------- table ---------- */
+  .table-wrap{
+    background:var(--white);
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius-lg);
+    overflow-x:auto;
+  }
+  table{width:100%;border-collapse:collapse;min-width:560px;}
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    padding:14px 16px;
+    border-bottom:1px solid var(--paper-line);
+    background:var(--paper);
+    white-space:nowrap;
+  }
+  td{
+    padding:13px 16px;
+    font-size:13.5px;
+    border-bottom:1px solid var(--paper-line);
+    vertical-align:top;
+  }
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(23,43,77,0.02);}
+  .col-actions{white-space:nowrap;text-align:right;}
+  .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    padding:3px 8px;
+    border-radius:5px;
+    background:rgba(63,122,92,0.1);
+    color:var(--sage);
+    text-transform:uppercase;
+  }
+  .tag.libur{background:rgba(178,74,59,0.1);color:var(--rust);}
+  .tag.hari_besar{background:rgba(200,155,60,0.15);color:var(--gold-deep);}
+  .tag.internal_sekolah{background:rgba(23,43,77,0.08);color:var(--ink);}
+  .empty-row td{
+    text-align:center;
+    padding:40px 16px;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(23,43,77,0.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--white);
+    border-radius:var(--radius-lg);
+    max-width:460px;
+    width:100%;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:26px 24px;
+  }
+  .modal h3{
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    margin:0 0 18px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius-sm);
+    padding:9px 12px;
+    font-family:'Public Sans',sans-serif;
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--paper);
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid var(--paper-line);
+  }
+  .form-err{
+    background:#FBEDEA;color:var(--rust);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;font-size:12.5px;
+    margin-bottom:14px;
+    display:none;
+  }
+  .toast{
+    position:fixed;bottom:20px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--white);
+    padding:12px 20px;border-radius:999px;
+    font-size:13px;font-weight:600;
+    opacity:0;pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.err{background:var(--rust);}
+</style>
+</head>
+<body>
+
+  <div id="gate">
+    <div class="gate-box">
+      <div class="mark">14</div>
+      <h2>Masuk Admin</h2>
+      <p>Halaman ini untuk operator pengelola Kalender Pendidikan. Masuk dengan akun yang sudah didaftarkan.</p>
+      <input type="email" id="gateEmail" placeholder="Email" autocomplete="username">
+      <input type="password" id="gatePassword" placeholder="Password" autocomplete="current-password">
+      <button id="gateBtn">Masuk</button>
+      <div class="gate-err" id="gateErr"></div>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">14</div>
+        <div class="brand-text">
+          <span class="eyebrow">Admin Panel</span>
+          <h1>Kalender Pendidikan</h1>
+        </div>
+      </div>
+      <div class="topbar-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Tersambung</span>
+        <span id="userEmail" style="opacity:0.6;margin-left:4px;"></span>
+        <button id="logoutBtn" style="margin-left:10px;background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--paper);border-radius:6px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;cursor:pointer;">Keluar</button>
+      </div>
+    </div>
+
+    <div class="shell">
+      <div class="sidenav" id="sidenav"></div>
+      <div class="main">
+        <div class="main-head">
+          <div>
+            <h2 id="mainTitle">—</h2>
+            <p id="mainSub">—</p>
+          </div>
+          <button class="btn btn-primary" id="addBtn">+ Tambah</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody">
+              <tr class="empty-row"><td>Memuat data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3 id="modalTitle">Tambah Data</h3>
+      <div class="form-err" id="formErr"></div>
+      <form id="modalForm"></form>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancelBtn" type="button">Batal</button>
+        <button class="btn btn-primary" id="saveBtn" type="button">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://myjyxpcdyzaydqxlyeee.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4UhZdrW-8Oy1aR31VdSCrA_m5CgcqeA";
+
+// ============================================================
+// LOGIN (Supabase Auth - email & password sungguhan)
+// Sesi disimpan hanya di memori (hilang saat halaman di-refresh),
+// operator perlu login ulang tiap kali buka halaman ini.
+// ============================================================
+let session = null; // { access_token, refresh_token, user }
+
+document.getElementById('gateBtn').addEventListener('click', tryLogin);
+document.getElementById('gatePassword').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
+
+async function tryLogin(){
+  const email = document.getElementById('gateEmail').value.trim();
+  const password = document.getElementById('gatePassword').value;
+  const errBox = document.getElementById('gateErr');
+  const btn = document.getElementById('gateBtn');
+  errBox.textContent = '';
+  if(!email || !password){
+    errBox.textContent = 'Email dan password wajib diisi.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Memeriksa…';
+  try{
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if(!res.ok){
+      throw new Error(data.error_description || data.msg || 'Email atau password salah.');
+    }
+    session = { access_token: data.access_token, refresh_token: data.refresh_token, user: data.user };
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('userEmail').textContent = session.user?.email || '';
+    boot();
+  }catch(err){
+    errBox.textContent = err.message;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+  }
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  session = null;
+  document.getElementById('gatePassword').value = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+});
+
+// ============================================================
+// KONFIGURASI RESOURCE
+// ============================================================
+const BULAN_OPTIONS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const JENIS_LABEL = {libur:'Libur', akademik:'Akademik', hari_besar:'Hari Besar', internal_sekolah:'Internal Sekolah'};
+
+const RESOURCES = {
+  tahun_ajaran:{
+    table:'kal_tahun_ajaran', label:'Tahun Ajaran', order:'tanggal_mulai.desc', select:'*',
+    columns:[
+      {label:'Nama', render:r=>r.nama},
+      {label:'Mulai', render:r=>r.tanggal_mulai},
+      {label:'Selesai', render:r=>r.tanggal_selesai},
+    ],
+    fields:[
+      {key:'nama', label:'Nama (mis. 2026/2027)', type:'text', required:true},
+      {key:'tanggal_mulai', label:'Tanggal Mulai', type:'date', required:true},
+      {key:'tanggal_selesai', label:'Tanggal Selesai', type:'date', required:true},
+    ]
+  },
+  semester:{
+    table:'kal_semester', label:'Semester', order:'tanggal_mulai.desc', select:'*,kal_tahun_ajaran(nama)',
+    columns:[
+      {label:'Tahun Ajaran', render:r=>r.kal_tahun_ajaran?.nama||'—'},
+      {label:'Semester', render:r=>r.nama},
+      {label:'Mulai', render:r=>r.tanggal_mulai},
+      {label:'Selesai', render:r=>r.tanggal_selesai},
+      {label:'HBE', render:r=>r.total_hbe},
+    ],
+    fields:[
+      {key:'tahun_ajaran_id', label:'Tahun Ajaran', type:'select-fk', resource:'tahun_ajaran', optionLabel:r=>r.nama, required:true},
+      {key:'nama', label:'Semester', type:'select', options:['Ganjil','Genap'], required:true},
+      {key:'tanggal_mulai', label:'Tanggal Mulai', type:'date', required:true},
+      {key:'tanggal_selesai', label:'Tanggal Selesai', type:'date', required:true},
+      {key:'total_hbe', label:'Total HBE', type:'number', default:0},
+      {key:'total_libur_umum', label:'Total Libur Umum', type:'number', default:0},
+      {key:'total_libur_kalender', label:'Total Libur Kalender', type:'number', default:0},
+    ]
+  },
+  bulan:{
+    table:'kal_bulan', label:'Bulan', order:'tahun.asc,urutan.asc', select:'*,kal_semester(nama,kal_tahun_ajaran(nama))',
+    columns:[
+      {label:'Semester', render:r=>`${r.kal_semester?.nama||''} ${r.kal_semester?.kal_tahun_ajaran?.nama||''}`},
+      {label:'Bulan', render:r=>r.nama_bulan},
+      {label:'Tahun', render:r=>r.tahun},
+      {label:'HLU', render:r=>r.hlu},
+      {label:'HBE', render:r=>r.hbe},
+      {label:'HLK', render:r=>r.hlk},
+      {label:'HBE/Minggu', render:r=>(r.hbe_mingguan||[]).join(', ') || '—'},
+    ],
+    fields:[
+      {key:'semester_id', label:'Semester', type:'select-fk', resource:'semester', optionLabel:r=>`${r.nama} ${r.kal_tahun_ajaran?.nama||''}`, required:true},
+      {key:'nama_bulan', label:'Nama Bulan', type:'select', options:BULAN_OPTIONS, required:true},
+      {key:'tahun', label:'Tahun', type:'number', required:true},
+      {key:'urutan', label:'Urutan (1–6 dalam semester)', type:'number', required:true},
+      {key:'hlu', label:'HLU (Hari Libur Umum)', type:'number', default:0},
+      {key:'hbe', label:'HBE (Hari Belajar Efektif)', type:'number', default:0},
+      {key:'hlk', label:'HLK (Hari Libur Kalender)', type:'number', default:0},
+      {key:'hbe_mingguan', label:'Rincian HBE per Minggu (pisah koma, urut baris teratas→bawah, mis: 0,0,0,6,5)', type:'int-array'},
+    ]
+  },
+  kegiatan:{
+    table:'kal_kegiatan', label:'Kegiatan', order:'tanggal_mulai.desc', select:'*,kal_bulan(nama_bulan,tahun,kal_semester(nama))',
+    columns:[
+      {label:'Bulan', render:r=>`${r.kal_bulan?.nama_bulan||''} ${r.kal_bulan?.tahun||''}`},
+      {label:'Mulai', render:r=>r.tanggal_mulai},
+      {label:'Selesai', render:r=>r.tanggal_selesai},
+      {label:'Uraian', render:r=>r.uraian},
+      {label:'Jenis', render:r=>`<span class="tag ${r.jenis}">${JENIS_LABEL[r.jenis]||r.jenis}</span>`},
+    ],
+    fields:[
+      {key:'bulan_id', label:'Bulan', type:'select-fk', resource:'bulan', optionLabel:r=>`${r.nama_bulan} ${r.tahun} — Smt ${r.kal_semester?.nama||''}`, required:true},
+      {key:'tanggal_mulai', label:'Tanggal Mulai', type:'date', required:true},
+      {key:'tanggal_selesai', label:'Tanggal Selesai', type:'date', required:true},
+      {key:'uraian', label:'Uraian Kegiatan', type:'textarea', required:true},
+      {key:'jenis', label:'Jenis', type:'select', options:Object.keys(JENIS_LABEL), default:'akademik', required:true},
+    ]
+  }
+};
+const RESOURCE_ORDER = ['tahun_ajaran','semester','bulan','kegiatan'];
+
+let activeResource = 'tahun_ajaran';
+let cache = {};      // { resourceKey: [rows...] }
+let editingId = null;
+
+// ============================================================
+// SUPABASE REST HELPERS
+// ============================================================
+function headers(extra={}){
+  return {
+    "apikey": SUPABASE_KEY,
+    "Authorization": `Bearer ${session ? session.access_token : SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+    ...extra
+  };
+}
+
+function handleAuthExpiry(res){
+  if(res.status === 401){
+    session = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('gateErr').textContent = 'Sesi berakhir, silakan masuk lagi.';
+    throw new Error('Sesi berakhir.');
+  }
+}
+
+async function apiList(resKey){
+  const cfg = RESOURCES[resKey];
+  const url = `${SUPABASE_URL}/rest/v1/${cfg.table}?select=${encodeURIComponent(cfg.select)}&order=${cfg.order}`;
+  const res = await fetch(url, { headers: headers() });
+  handleAuthExpiry(res);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiInsert(resKey, payload){
+  const cfg = RESOURCES[resKey];
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}`, {
+    method:'POST',
+    headers: headers({ "Prefer":"return=representation" }),
+    body: JSON.stringify(payload)
+  });
+  handleAuthExpiry(res);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiUpdate(resKey, id, payload){
+  const cfg = RESOURCES[resKey];
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?id=eq.${id}`, {
+    method:'PATCH',
+    headers: headers({ "Prefer":"return=representation" }),
+    body: JSON.stringify(payload)
+  });
+  handleAuthExpiry(res);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiDelete(resKey, id){
+  const cfg = RESOURCES[resKey];
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?id=eq.${id}`, {
+    method:'DELETE',
+    headers: headers()
+  });
+  handleAuthExpiry(res);
+  if(!res.ok) throw new Error(await res.text());
+}
+
+// ============================================================
+// UI: STATUS & TOAST
+// ============================================================
+function setStatus(state, text){
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state === 'ok' ? '' : ' ' + state);
+  document.getElementById('statusText').textContent = text;
+}
+function toast(msg, isErr){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(()=> el.className = 'toast', 2200);
+}
+
+// ============================================================
+// SIDENAV
+// ============================================================
+function renderSidenav(){
+  const nav = document.getElementById('sidenav');
+  nav.innerHTML = RESOURCE_ORDER.map(key => `
+    <button class="nav-item${key===activeResource?' active':''}" data-key="${key}">
+      ${RESOURCES[key].label}
+      <span class="nav-count">${(cache[key]||[]).length}</span>
+    </button>
+  `).join('');
+  nav.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchResource(btn.dataset.key));
+  });
+}
+
+async function switchResource(key){
+  activeResource = key;
+  renderSidenav();
+  document.getElementById('mainTitle').textContent = RESOURCES[key].label;
+  document.getElementById('mainSub').textContent = `Kelola data ${RESOURCES[key].label.toLowerCase()}`;
+  await loadResource(key);
+  renderTable(key);
+}
+
+// ============================================================
+// LOAD DATA (dengan cache sederhana, refresh tiap pindah tab)
+// ============================================================
+async function loadResource(key){
+  setStatus('busy','Memuat...');
+  try{
+    cache[key] = await apiList(key);
+    setStatus('ok','Tersambung');
+  }catch(err){
+    setStatus('err','Gagal memuat');
+    toast('Gagal memuat data: cek RLS / koneksi', true);
+    cache[key] = cache[key] || [];
+  }
+}
+
+async function loadAll(){
+  for(const key of RESOURCE_ORDER){
+    await loadResource(key);
+  }
+}
+
+// ============================================================
+// RENDER TABLE
+// ============================================================
+function renderTable(key){
+  const cfg = RESOURCES[key];
+  const rows = cache[key] || [];
+  document.getElementById('tableHead').innerHTML = `
+    <tr>${cfg.columns.map(c=>`<th>${c.label}</th>`).join('')}<th></th></tr>
+  `;
+  if(rows.length === 0){
+    document.getElementById('tableBody').innerHTML = `<tr class="empty-row"><td colspan="${cfg.columns.length+1}">Belum ada data. Klik "+ Tambah" untuk menambahkan.</td></tr>`;
+    renderSidenav();
+    return;
+  }
+  document.getElementById('tableBody').innerHTML = rows.map(r => `
+    <tr>
+      ${cfg.columns.map(c=>`<td>${c.render(r) ?? '—'}</td>`).join('')}
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${r.id}">Edit</button>
+        <button class="btn btn-danger btn-sm" data-action="delete" data-id="${r.id}">Hapus</button>
+      </td>
+    </tr>
+  `).join('');
+  document.getElementById('tableBody').querySelectorAll('[data-action="edit"]').forEach(b=>{
+    b.addEventListener('click', ()=> openModal(key, b.dataset.id));
+  });
+  document.getElementById('tableBody').querySelectorAll('[data-action="delete"]').forEach(b=>{
+    b.addEventListener('click', ()=> handleDelete(key, b.dataset.id));
+  });
+  renderSidenav();
+}
+
+// ============================================================
+// MODAL FORM
+// ============================================================
+document.getElementById('addBtn').addEventListener('click', ()=> openModal(activeResource, null));
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('formErr').style.display = 'none';
+  editingId = null;
+}
+
+function openModal(key, id){
+  editingId = id;
+  const cfg = RESOURCES[key];
+  const record = id ? (cache[key]||[]).find(r => String(r.id) === String(id)) : null;
+  document.getElementById('modalTitle').textContent = (id ? 'Edit ' : 'Tambah ') + cfg.label;
+  document.getElementById('formErr').style.display = 'none';
+
+  const form = document.getElementById('modalForm');
+  form.innerHTML = cfg.fields.map(f => renderField(f, record)).join('');
+
+  document.getElementById('saveBtn').onclick = () => handleSave(key, cfg, record);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function renderField(f, record){
+  const value = record ? record[f.key] : (f.default ?? '');
+  const req = f.required ? 'required' : '';
+  if(f.type === 'select'){
+    const opts = f.options.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
+    return `<div class="field"><label>${f.label}</label><select name="${f.key}" ${req}>${opts}</select></div>`;
+  }
+  if(f.type === 'select-fk'){
+    const list = cache[f.resource] || [];
+    const opts = list.map(r => `<option value="${r.id}" ${String(r.id)===String(value)?'selected':''}>${typeof f.optionLabel==='function'?f.optionLabel(r):r[f.optionLabel]}</option>`).join('');
+    return `<div class="field"><label>${f.label}</label><select name="${f.key}" ${req}><option value="">— pilih —</option>${opts}</select></div>`;
+  }
+  if(f.type === 'textarea'){
+    return `<div class="field"><label>${f.label}</label><textarea name="${f.key}" ${req}>${value ?? ''}</textarea></div>`;
+  }
+  if(f.type === 'int-array'){
+    const strVal = Array.isArray(value) ? value.join(', ') : (value ?? '');
+    return `<div class="field"><label>${f.label}</label><input type="text" name="${f.key}" value="${strVal}" placeholder="0, 0, 0, 6, 5"></div>`;
+  }
+  return `<div class="field"><label>${f.label}</label><input type="${f.type}" name="${f.key}" value="${value ?? ''}" ${req}></div>`;
+}
+
+async function handleSave(key, cfg, record){
+  const form = document.getElementById('modalForm');
+  const errBox = document.getElementById('formErr');
+  const payload = {};
+  for(const f of cfg.fields){
+    const el = form.elements[f.key];
+    let val = el.value;
+    if(f.type === 'number') val = val === '' ? null : Number(val);
+    if(f.type === 'int-array'){
+      const nums = val.split(',').map(s => s.trim()).filter(s => s !== '').map(Number);
+      val = nums.length ? nums : null;
+    }
+    if(f.required && (val === '' || val === null)){
+      errBox.textContent = `Kolom "${f.label}" wajib diisi.`;
+      errBox.style.display = 'block';
+      return;
+    }
+    payload[f.key] = val;
+  }
+  document.getElementById('saveBtn').disabled = true;
+  try{
+    if(record){
+      await apiUpdate(key, record.id, payload);
+    }else{
+      await apiInsert(key, payload);
+    }
+    closeModal();
+    toast('Data tersimpan.');
+    await loadAll();
+    renderTable(activeResource);
+  }catch(err){
+    errBox.textContent = 'Gagal menyimpan: ' + (err.message || 'terjadi kesalahan.');
+    errBox.style.display = 'block';
+  }finally{
+    document.getElementById('saveBtn').disabled = false;
+  }
+}
+
+async function handleDelete(key, id){
+  if(!confirm('Hapus data ini? Tindakan ini tidak bisa dibatalkan.')) return;
+  try{
+    await apiDelete(key, id);
+    toast('Data dihapus.');
+    await loadAll();
+    renderTable(activeResource);
+  }catch(err){
+    toast('Gagal menghapus: mungkin masih dipakai data lain.', true);
+  }
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+async function boot(){
+  await loadAll();
+  activeResource = 'tahun_ajaran';
+  document.getElementById('mainTitle').textContent = RESOURCES[activeResource].label;
+  document.getElementById('mainSub').textContent = `Kelola data ${RESOURCES[activeResource].label.toLowerCase()}`;
+  renderSidenav();
+  renderTable(activeResource);
+}
+</script>
+</body>
+</html>

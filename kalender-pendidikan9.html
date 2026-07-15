@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalender Pendidikan · SMP Negeri 14 Tarakan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#172B4D;
+    --ink-soft:#4A5568;
+    --paper:#EFF3F6;
+    --paper-line:#D8E1E8;
+    --gold:#C89B3C;
+    --gold-deep:#A87F2C;
+    --rust:#B24A3B;
+    --sage:#3F7A5C;
+    --white:#FFFFFF;
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:16px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--ink);
+    font-family:'Public Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  /* ---------- top nav ---------- */
+  .topbar{
+    background:var(--ink);
+    color:var(--paper);
+    padding:14px clamp(16px,4vw,40px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    position:sticky;
+    top:0;
+    z-index:30;
+    flex-wrap:wrap;
+    row-gap:10px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-mark{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:linear-gradient(155deg,var(--gold),var(--gold-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:16px;
+    flex-shrink:0;
+  }
+  .brand-text .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:block;
+    margin-bottom:2px;
+  }
+  .brand-text h1{
+    font-family:'Fraunces',serif;
+    font-size:clamp(15px,2.4vw,19px);
+    font-weight:600;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .topbar-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .topbar .hero-eyebrow{
+    font-size:10px;
+    margin:0;
+    white-space:nowrap;
+  }
+  .topbar .sem-switch{
+    margin:0;
+    padding:3px;
+  }
+  .topbar .sem-btn{
+    padding:5px 13px;
+    font-size:11px;
+  }
+  @media (max-width:560px){
+    .topbar-right{width:100%;justify-content:space-between;}
+  }
+  .print-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid rgba(200,155,60,0.5);
+    background:transparent;
+    color:var(--gold);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .print-btn:hover{background:var(--gold);color:var(--ink);}
+
+  /* ---------- print area (hanya tampil saat mencetak) ---------- */
+  #printArea{display:none;}
+
+  @media print{
+    body{background:#fff;}
+    body > *:not(#printArea){display:none !important;}
+    #printArea{
+      display:block !important;
+      color:#111;
+      font-family:'Public Sans', sans-serif;
+      padding:0;
+    }
+    .print-doc-head{
+      text-align:center;
+      margin-bottom:3mm;
+      border-bottom:0.75pt solid #111;
+      padding-bottom:1.5mm;
+    }
+    .print-doc-head h1{
+      font-family:'Fraunces',serif;
+      font-size:13pt;
+      margin:0 0 1mm;
+    }
+    .print-doc-head p{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:7.5pt;
+      margin:0;
+      color:#333;
+    }
+    .print-ledger-block{
+      margin-bottom:3mm;
+      page-break-inside:avoid;
+    }
+    table.print-ledger{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-family:'Public Sans', sans-serif;
+    }
+    table.print-ledger col.col-day{width:6.2%;}
+    table.print-ledger col.col-hbe{width:6%;}
+    table.print-ledger col.col-tgl{width:8%;}
+    table.print-ledger col.col-uraian{width:29.4%;}
+    table.print-ledger th, table.print-ledger td{
+      border:0.6pt solid #333;
+      padding:1mm 1mm;
+      font-size:7pt;
+      text-align:center;
+      vertical-align:middle;
+    }
+    table.print-ledger thead .ledger-month-title{
+      font-family:'Fraunces',serif;
+      font-size:9pt;
+      font-weight:600;
+      letter-spacing:0.03em;
+      background:#eee;
+    }
+    table.print-ledger thead th{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:6.5pt;
+      font-weight:700;
+      background:#f3f3f3;
+    }
+    table.print-ledger tbody td{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:7pt;
+      height:4.6mm;
+    }
+    table.print-ledger td.blank{background:#fafafa;}
+    table.print-ledger td.hbe-col{font-weight:700;}
+    table.print-ledger td.tgl-col, table.print-ledger td.uraian-col{
+      text-align:left;
+      font-family:'Public Sans', sans-serif;
+      font-size:6.5pt;
+      line-height:1.25;
+      padding:1mm 1.5mm;
+    }
+    table.print-ledger td.uraian-col{white-space:normal;}
+    table.print-ledger tr.ledger-summary td{
+      font-weight:700;
+      background:#f7f7f7;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:7pt;
+    }
+    table.print-ledger tr.ledger-summary .sum-left{text-align:left;padding-left:2mm;}
+    table.print-ledger tr.ledger-summary .sum-mid{text-align:center;}
+    table.print-ledger tr.ledger-summary .sum-right{text-align:left;padding-left:2mm;}
+    .print-total{
+      margin-top:4mm;
+      page-break-inside:avoid;
+    }
+    .print-total h2{
+      font-family:'Fraunces',serif;
+      font-size:10pt;
+      margin:0 0 2.5mm;
+    }
+    .print-total table{
+      border-collapse:collapse;
+      width:100%;
+      max-width:95mm;
+    }
+    .print-total th, .print-total td{
+      border:0.4pt solid #999;
+      padding:1.5mm 3mm;
+      font-size:7.5pt;
+      text-align:left;
+    }
+    .print-total td{
+      font-family:'IBM Plex Mono',monospace;
+      text-align:right;
+      font-weight:700;
+    }
+    @page{ size:A4; margin:10mm; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    background:var(--ink);
+    color:var(--paper);
+    padding:22px clamp(16px,4vw,40px) 26px;
+  }
+  .hero-inner{
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .hero-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:rgba(239,243,246,0.55);
+    margin:0 0 10px;
+  }
+  .hero-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .hero-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(20px,2.6vw,26px);
+    line-height:1.1;
+    margin:0;
+    letter-spacing:-0.01em;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .hero-title em{
+    font-style:normal;
+    color:var(--gold);
+  }
+  .sem-switch{
+    display:inline-flex;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:999px;
+    padding:4px;
+    gap:2px;
+  }
+  .sem-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    font-weight:500;
+    letter-spacing:0.03em;
+    padding:9px 20px;
+    border-radius:999px;
+    border:none;
+    background:transparent;
+    color:rgba(239,243,246,0.6);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .sem-btn:hover{color:var(--paper);}
+  .sem-btn.active{
+    background:var(--gold);
+    color:var(--ink);
+    font-weight:700;
+  }
+  .sem-btn:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+  }
+  .stamps{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    flex:1 1 auto;
+  }
+  .stamp{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:var(--radius-md);
+    padding:9px 16px;
+    min-width:0;
+    flex:1 1 120px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .stamp .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:clamp(16px,2.2vw,20px);
+    font-weight:600;
+    color:var(--white);
+    line-height:1;
+  }
+  .stamp .lbl{
+    font-size:10.5px;
+    color:rgba(239,243,246,0.6);
+    letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  .stamp.gold .num{color:var(--gold);}
+  .stamp.rust .num{color:#E08A78;}
+  .stamp.sage .num{color:#7FC4A1;}
+
+  /* ---------- content wrapper ---------- */
+  .page{
+    background:var(--paper);
+    border-radius:28px 28px 0 0;
+    margin-top:0;
+    padding:36px clamp(16px,4vw,40px) 60px;
+  }
+  .content{
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  /* ---------- tab strip ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-bottom:26px;
+    -ms-overflow-style:none;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:0.03em;
+    white-space:nowrap;
+    padding:10px 18px 12px;
+    background:var(--white);
+    border:1px solid var(--paper-line);
+    border-bottom:3px solid var(--paper-line);
+    border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, transform .15s ease;
+  }
+  .tab:hover{transform:translateY(-2px);}
+  .tab.active{
+    color:var(--ink);
+    border-bottom-color:var(--gold);
+    font-weight:700;
+  }
+
+  /* ---------- layout grid ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:max-content 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  /* ---------- calendar card ---------- */
+  .cal-card{
+    width:fit-content;
+    max-width:100%;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--white) 0px, var(--white) 39px,
+        #E6ECF1 40px
+      );
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius-lg);
+    padding:26px clamp(14px,3vw,28px) 22px;
+    position:relative;
+    box-shadow:0 1px 0 rgba(23,43,77,0.03);
+  }
+  .cal-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .cal-head h2{
+    font-family:'Fraunces',serif;
+    font-size:clamp(24px,4vw,32px);
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+  }
+  .cal-head .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .seal{
+    flex-shrink:0;
+    width:64px;height:64px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #DEB65C, var(--gold-deep));
+    border:2px dashed rgba(255,255,255,0.55);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--ink);
+    box-shadow:0 3px 8px rgba(168,127,44,0.35);
+  }
+  .seal .n{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:18px;
+    line-height:1;
+  }
+  .seal .t{
+    font-size:8px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    max-width:420px;
+  }
+  .cal-dow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-align:center;
+    padding-bottom:8px;
+  }
+  .cal-cell{
+    position:relative;
+    aspect-ratio:1/0.85;
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    padding:4px 5px;
+    border-radius:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:clamp(10px,1.6vw,12px);
+    font-weight:500;
+    color:var(--ink);
+    background:transparent;
+  }
+  .cal-cell.blank{visibility:hidden;}
+  .cal-cell.minggu{background:rgba(23,43,77,0.06);color:var(--ink-soft);}
+  .cal-cell.libur{background:rgba(178,74,59,0.13);color:var(--rust);font-weight:700;}
+  .cal-cell.efektif{background:rgba(63,122,92,0.08);}
+  .cal-cell .dot{
+    position:absolute;
+    bottom:6px;right:6px;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--gold-deep);
+  }
+  .cal-cell.today{outline:2px solid var(--gold-deep);outline-offset:-2px;}
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:20px;
+    padding-top:16px;
+    border-top:1px solid var(--paper-line);
+  }
+  .legend-item{
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .legend-swatch{width:11px;height:11px;border-radius:3px;}
+  .legend-swatch.efektif{background:var(--sage);}
+  .legend-swatch.libur{background:var(--rust);}
+  .legend-swatch.minggu{background:#9AA7B8;}
+  .legend-swatch.dot{background:var(--gold-deep);border-radius:50%;}
+
+  /* ---------- sidebar (kegiatan) ---------- */
+  .side-card{
+    background:var(--white);
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius-lg);
+    padding:24px 22px;
+  }
+  .side-card h3{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--ink);
+  }
+  .side-card .side-sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .kegiatan-list{
+    list-style:none;
+    margin:0;padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .keg-item{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .keg-date{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--white);
+    background:var(--ink);
+    border-radius:6px;
+    padding:5px 8px;
+    white-space:nowrap;
+    flex-shrink:0;
+    min-width:44px;
+    text-align:center;
+  }
+  .keg-item.libur .keg-date{background:var(--rust);}
+  .keg-item.hari_besar .keg-date{background:var(--gold-deep);}
+  .keg-item.internal_sekolah .keg-date{background:var(--sage);}
+  .keg-body p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.45;
+    color:var(--ink);
+  }
+  .keg-body .badge{
+    display:inline-block;
+    margin-top:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+  }
+  .empty-state{
+    font-size:13px;
+    color:var(--ink-soft);
+    padding:20px 0;
+    text-align:center;
+    line-height:1.6;
+  }
+
+  /* ---------- footer ---------- */
+  .footer{
+    max-width:1180px;
+    margin:40px auto 0;
+    padding-top:20px;
+    border-top:1px solid var(--paper-line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  /* ---------- loading / error ---------- */
+  .loader-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:80px 20px;
+    color:var(--ink-soft);
+    gap:14px;
+  }
+  .spinner{
+    width:28px;height:28px;
+    border-radius:50%;
+    border:3px solid var(--paper-line);
+    border-top-color:var(--gold-deep);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-box{
+    background:#FBEDEA;
+    border:1px solid rgba(178,74,59,0.3);
+    color:var(--rust);
+    border-radius:var(--radius-md);
+    padding:18px 20px;
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .error-box code{
+    background:rgba(178,74,59,0.1);
+    padding:1px 5px;
+    border-radius:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">14</div>
+      <div class="brand-text">
+        <span class="eyebrow">Kalender Pendidikan</span>
+        <h1>SMP Negeri 14 Tarakan</h1>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <p class="hero-eyebrow" id="heroEyebrow">Tahun Ajaran —</p>
+      <div class="sem-switch" id="semSwitch"></div>
+      <button class="print-btn" id="printBtn">Cetak</button>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-row">
+        <h1 class="hero-title" id="heroTitle">Semester <em>—</em></h1>
+        <div class="stamps" id="stamps">
+          <div class="stamp gold"><div class="num">—</div><div class="lbl">Hari Belajar Efektif</div></div>
+          <div class="stamp"><div class="num">—</div><div class="lbl">Libur Umum (Minggu)</div></div>
+          <div class="stamp rust"><div class="num">—</div><div class="lbl">Libur Kalender</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="content" id="content">
+      <div class="loader-wrap">
+        <div class="spinner"></div>
+        <span>Memuat data kalender…</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+const SUPABASE_URL = "https://myjyxpcdyzaydqxlyeee.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4UhZdrW-8Oy1aR31VdSCrA_m5CgcqeA";
+
+const BULAN_INDEX = {
+  "Januari":0,"Februari":1,"Maret":2,"April":3,"Mei":4,"Juni":5,
+  "Juli":6,"Agustus":7,"September":8,"Oktober":9,"November":10,"Desember":11
+};
+const NAMA_HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+
+let allSemesters = [];
+let semesterData = null;
+let activeBulanId = null;
+
+const URUTAN_SEMESTER = { "Ganjil": 0, "Genap": 1 };
+
+async function fetchKalender(){
+  const url = `${SUPABASE_URL}/rest/v1/kal_semester?select=*,kal_tahun_ajaran(nama),kal_bulan(*,kal_kegiatan(*))&order=tanggal_mulai.desc&kal_bulan.order=urutan.asc`;
+  const res = await fetch(url, {
+    headers:{
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  if(!res.ok){
+    const body = await res.text().catch(()=> "");
+    throw new Error(`HTTP ${res.status} — ${body || res.statusText}`);
+  }
+  const rows = await res.json();
+  if(!Array.isArray(rows) || rows.length === 0){
+    throw new Error("EMPTY");
+  }
+  // Urutkan kronologis: Semester Ganjil (mulai pertengahan tahun) selalu
+  // mendahului Semester Genap (mulai awal tahun berikutnya) dalam satu
+  // tahun ajaran yang sama.
+  rows.sort((a,b) => new Date(a.tanggal_mulai) - new Date(b.tanggal_mulai));
+  return rows;
+}
+
+function renderSemSwitch(){
+  const wrap = document.getElementById('semSwitch');
+  wrap.innerHTML = allSemesters.map(s => `
+    <button class="sem-btn${s.id === semesterData.id ? ' active' : ''}" data-id="${s.id}">
+      Semester ${s.nama}
+    </button>
+  `).join('');
+  wrap.querySelectorAll('.sem-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chosen = allSemesters.find(s => s.id === btn.dataset.id);
+      if(!chosen || chosen.id === semesterData.id) return;
+      semesterData = chosen;
+      renderHero(chosen);
+      renderContent(chosen);
+    });
+  });
+}
+
+function renderHero(sem){
+  const tahunAjaran = sem.kal_tahun_ajaran ? sem.kal_tahun_ajaran.nama : '';
+  document.getElementById('heroEyebrow').textContent = `Tahun Ajaran ${tahunAjaran}`;
+  renderSemSwitch();
+  document.getElementById('heroTitle').innerHTML = `Semester <em>${sem.nama}</em>`;
+  document.getElementById('stamps').innerHTML = `
+    <div class="stamp gold"><div class="num">${sem.total_hbe ?? '—'}</div><div class="lbl">Hari Belajar Efektif</div></div>
+    <div class="stamp"><div class="num">${sem.total_libur_umum ?? '—'}</div><div class="lbl">Libur Umum (Minggu)</div></div>
+    <div class="stamp rust"><div class="num">${sem.total_libur_kalender ?? '—'}</div><div class="lbl">Libur Kalender</div></div>
+  `;
+}
+
+function buildPrintLedgerTable(bulan){
+  const monthIdx = BULAN_INDEX[bulan.nama_bulan];
+  const year = bulan.tahun;
+  const firstDow = new Date(year, monthIdx, 1).getDay();
+  const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
+  const totalCells = firstDow + daysInMonth;
+  const totalRows = Math.ceil(totalCells / 7);
+  const hbeMingguan = Array.isArray(bulan.hbe_mingguan) ? bulan.hbe_mingguan : [];
+  const kegiatanList = (bulan.kal_kegiatan || []).slice().sort((a,b) => a.tanggal_mulai.localeCompare(b.tanggal_mulai));
+
+  let dayCounter = 1;
+  let rowsHtml = '';
+
+  for(let r=0; r<totalRows; r++){
+    let cellsHtml = '';
+    let rowFirstDay = null, rowLastDay = null;
+    for(let c=0; c<7; c++){
+      const cellIndex = r*7 + c;
+      if(cellIndex < firstDow || dayCounter > daysInMonth){
+        cellsHtml += '<td class="blank"></td>';
+      }else{
+        if(rowFirstDay === null) rowFirstDay = dayCounter;
+        rowLastDay = dayCounter;
+        cellsHtml += `<td>${dayCounter}</td>`;
+        dayCounter++;
+      }
+    }
+    const hbeVal = (hbeMingguan[r] !== undefined && hbeMingguan[r] !== null) ? hbeMingguan[r] : '—';
+
+    const rowKegiatan = kegiatanList.filter(k => {
+      const start = new Date(k.tanggal_mulai + "T00:00:00");
+      if(start.getFullYear() !== year || start.getMonth() !== monthIdx) return false;
+      const d = start.getDate();
+      return rowFirstDay !== null && d >= rowFirstDay && d <= rowLastDay;
+    });
+    const tanggalHtml = rowKegiatan.map(k => formatTanggal(k.tanggal_mulai, k.tanggal_selesai)).join('<br>');
+    const uraianHtml = rowKegiatan.map(k => k.uraian).join('<br>');
+
+    rowsHtml += `<tr>${cellsHtml}<td class="hbe-col">${hbeVal}</td><td class="tgl-col">${tanggalHtml}</td><td class="uraian-col">${uraianHtml}</td></tr>`;
+  }
+
+  const dowHeader = NAMA_HARI.map(h => `<th>${h}</th>`).join('');
+
+  return `
+    <table class="print-ledger">
+      <colgroup>
+        <col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day">
+        <col class="col-day"><col class="col-day"><col class="col-day">
+        <col class="col-hbe"><col class="col-tgl"><col class="col-uraian">
+      </colgroup>
+      <thead>
+        <tr>
+          <th colspan="7" class="ledger-month-title">${bulan.nama_bulan.toUpperCase()} ${bulan.tahun}</th>
+          <th rowspan="2">JML.<br>HBE</th>
+          <th rowspan="2">TANGGAL</th>
+          <th rowspan="2">URAIAN KEGIATAN</th>
+        </tr>
+        <tr>${dowHeader}</tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+        <tr class="ledger-summary">
+          <td colspan="7" class="sum-left">HLU&nbsp;=&nbsp;${bulan.hlu}</td>
+          <td class="sum-mid">HBE&nbsp;=&nbsp;${bulan.hbe}</td>
+          <td colspan="2" class="sum-right">HLK&nbsp;=&nbsp;${bulan.hlk}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+}
+
+function preparePrint(sem){
+  const bulanList = (sem.kal_bulan || []).slice().sort((a,b) => a.urutan - b.urutan);
+  const tahunAjaran = sem.kal_tahun_ajaran ? sem.kal_tahun_ajaran.nama : '';
+
+  const monthsHtml = bulanList.map(b => `
+    <div class="print-ledger-block">${buildPrintLedgerTable(b)}</div>
+  `).join('');
+
+  document.getElementById('printArea').innerHTML = `
+    <div class="print-doc-head">
+      <h1>Kalender Pendidikan</h1>
+      <p>SMP Negeri 14 Tarakan &middot; Tahun Ajaran ${tahunAjaran} &middot; Semester ${sem.nama}</p>
+    </div>
+    ${monthsHtml}
+    <div class="print-total">
+      <h2>Rekapitulasi Semester ${sem.nama}</h2>
+      <table>
+        <tr><th>Total Hari Belajar Efektif (HBE)</th><td>${sem.total_hbe ?? '—'}</td></tr>
+        <tr><th>Total Hari Libur Umum (Minggu)</th><td>${sem.total_libur_umum ?? '—'}</td></tr>
+        <tr><th>Total Hari Libur Kalender</th><td>${sem.total_libur_kalender ?? '—'}</td></tr>
+      </table>
+    </div>
+  `;
+}
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  if(!semesterData) return;
+  preparePrint(semesterData);
+  window.print();
+});
+
+function dateInRange(d, start, end){
+  const t = d.getTime();
+  return t >= new Date(start+"T00:00:00").getTime() && t <= new Date(end+"T00:00:00").getTime();
+}
+
+function buildCalendarGrid(bulan){
+  const monthIdx = BULAN_INDEX[bulan.nama_bulan];
+  const year = bulan.tahun;
+  const firstDow = new Date(year, monthIdx, 1).getDay();
+  const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
+  const kegiatan = bulan.kal_kegiatan || [];
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === monthIdx;
+
+  let cells = '';
+  for(let i=0;i<firstDow;i++){
+    cells += `<div class="cal-cell blank"></div>`;
+  }
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(year, monthIdx, day);
+    const dow = d.getDay();
+    const isSunday = dow === 0;
+    const liburHit = kegiatan.find(k => k.jenis === 'libur' && dateInRange(d, k.tanggal_mulai, k.tanggal_selesai));
+    const anyKegiatan = kegiatan.some(k => dateInRange(d, k.tanggal_mulai, k.tanggal_selesai));
+    let cls = 'efektif';
+    if(liburHit) cls = 'libur';
+    else if(isSunday) cls = 'minggu';
+    const isToday = isCurrentMonth && today.getDate() === day;
+    cells += `<div class="cal-cell ${cls}${isToday ? ' today':''}">${day}${anyKegiatan ? '<span class="dot"></span>' : ''}</div>`;
+  }
+
+  const dow = NAMA_HARI.map(h => `<div class="cal-dow">${h.slice(0,3)}</div>`).join('');
+
+  return `
+    <div class="cal-head">
+      <div>
+        <h2>${bulan.nama_bulan} ${bulan.tahun}</h2>
+        <div class="sub">HLU ${bulan.hlu} · HBE ${bulan.hbe} · HLK ${bulan.hlk}</div>
+      </div>
+      <div class="seal"><div class="n">${bulan.hbe}</div><div class="t">HBE</div></div>
+    </div>
+    <div class="cal-grid">${dow}${cells}</div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch efektif"></span>Hari efektif</div>
+      <div class="legend-item"><span class="legend-swatch libur"></span>Libur</div>
+      <div class="legend-item"><span class="legend-swatch minggu"></span>Minggu</div>
+      <div class="legend-item"><span class="legend-swatch dot"></span>Ada kegiatan</div>
+    </div>
+  `;
+}
+
+function jenisLabel(j){
+  return {libur:'Libur', akademik:'Akademik', hari_besar:'Hari Besar', internal_sekolah:'Internal Sekolah'}[j] || j;
+}
+
+function formatTanggal(mulai, selesai){
+  const dMulai = new Date(mulai+"T00:00:00").getDate();
+  const dSelesai = new Date(selesai+"T00:00:00").getDate();
+  return dMulai === dSelesai ? `${dMulai}` : `${dMulai}–${dSelesai}`;
+}
+
+function buildKegiatanSidebar(bulan){
+  const list = (bulan.kal_kegiatan || []).slice().sort((a,b)=> a.tanggal_mulai.localeCompare(b.tanggal_mulai));
+  if(list.length === 0){
+    return `
+      <h3>Kegiatan</h3>
+      <div class="side-sub">${bulan.nama_bulan} ${bulan.tahun}</div>
+      <div class="empty-state">Belum ada kegiatan tercatat untuk bulan ini.</div>
+    `;
+  }
+  const items = list.map(k => `
+    <li class="keg-item ${k.jenis}">
+      <div class="keg-date">${formatTanggal(k.tanggal_mulai, k.tanggal_selesai)}</div>
+      <div class="keg-body">
+        <p>${k.uraian}</p>
+        <span class="badge">${jenisLabel(k.jenis)}</span>
+      </div>
+    </li>
+  `).join('');
+  return `
+    <h3>Kegiatan</h3>
+    <div class="side-sub">${bulan.nama_bulan} ${bulan.tahun} · ${list.length} agenda</div>
+    <ul class="kegiatan-list">${items}</ul>
+  `;
+}
+
+function renderMonth(){
+  const bulan = semesterData.kal_bulan.find(b => b.id === activeBulanId);
+  if(!bulan) return;
+  document.getElementById('calCard').innerHTML = buildCalendarGrid(bulan);
+  document.getElementById('sideCard').innerHTML = buildKegiatanSidebar(bulan);
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.id === activeBulanId);
+  });
+}
+
+function renderTabs(bulanList){
+  return bulanList.map(b => `<button class="tab" data-id="${b.id}">${b.nama_bulan}</button>`).join('');
+}
+
+function renderContent(sem){
+  const bulanList = (sem.kal_bulan || []).slice().sort((a,b)=> a.urutan - b.urutan);
+  const today = new Date();
+  const currentMonthMatch = bulanList.find(b => BULAN_INDEX[b.nama_bulan] === today.getMonth() && b.tahun === today.getFullYear());
+  activeBulanId = (currentMonthMatch || bulanList[0])?.id;
+
+  document.getElementById('content').innerHTML = `
+    <div class="tabs" id="tabs">${renderTabs(bulanList)}</div>
+    <div class="layout">
+      <div class="cal-card" id="calCard"></div>
+      <div class="side-card" id="sideCard"></div>
+    </div>
+    <div class="footer">
+      <span>Data tersinkron langsung dari Supabase</span>
+      <span>Kalender Pendidikan · Semester ${sem.nama} ${sem.kal_tahun_ajaran?.nama || ''}</span>
+    </div>
+  `;
+
+  document.getElementById('tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    activeBulanId = btn.dataset.id;
+    renderMonth();
+  });
+
+  renderMonth();
+}
+
+function renderError(err){
+  document.getElementById('content').innerHTML = `
+    <div class="error-box">
+      <strong>Data kalender belum bisa dimuat.</strong><br><br>
+      Periksa hal berikut lalu muat ulang halaman:
+      <ul style="margin:10px 0 0;padding-left:18px;line-height:1.7;">
+        <li>Tabel <code>kal_semester</code>, <code>kal_bulan</code>, <code>kal_kegiatan</code> sudah dibuat dan terisi data</li>
+        <li>Row Level Security policy "select" untuk publik sudah aktif</li>
+        <li>URL project dan API key Supabase masih valid</li>
+      </ul>
+      <br>
+      <span style="opacity:0.75;">Detail teknis: ${err.message === 'EMPTY' ? 'query berhasil tapi tidak ada baris data ditemukan di kal_semester' : err.message}</span>
+    </div>
+  `;
+}
+
+function pickDefaultSemester(semesters){
+  const today = new Date();
+  const berjalan = semesters.find(s => today >= new Date(s.tanggal_mulai) && today <= new Date(s.tanggal_selesai));
+  return berjalan || semesters[semesters.length - 1];
+}
+
+(async function init(){
+  try{
+    const semesters = await fetchKalender();
+    allSemesters = semesters;
+    semesterData = pickDefaultSemester(semesters);
+    renderHero(semesterData);
+    renderContent(semesterData);
+  }catch(err){
+    renderError(err);
+  }
+})();
+</script>
+</body>
+</html>
