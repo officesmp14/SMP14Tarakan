@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buku Tamu - SMP Negeri 14 Tarakan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#EDEFE9; --panel:#FFFFFF; --ink:#202A24; --ink-soft:#5B6B60;
+    --stamp:#A13D3D; --brass:#C79A3E; --line:#D3D8CE; --focus:#2F5D50;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif; color:var(--ink); background:var(--bg);
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Zilla Slab',serif; margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .nameplate{
+    background:var(--panel); border-bottom:3px double var(--ink);
+    padding:20px 24px; text-align:center;
+  }
+  .nameplate .sub{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-soft);}
+  .nameplate h1{font-size:22px; margin:4px 0;}
+  .nameplate .addr{font-size:12px; color:var(--ink-soft);}
+
+  .wrap{max-width:640px; margin:0 auto; padding:24px 20px 60px;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:3px;
+    padding:22px; margin-bottom:20px;
+  }
+  .panel h2{font-size:17px; margin-bottom:4px;}
+  .panel .desc{font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;}
+
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px;}
+  .form-grid .full{grid-column:1/-1;}
+  label{
+    display:block; font-size:11.5px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.6px; color:var(--ink-soft); margin-bottom:5px;
+  }
+  input, select, textarea{
+    width:100%; font-family:'Inter',sans-serif; font-size:14px; padding:9px 10px;
+    border:1px solid var(--line); border-radius:2px; background:#fdfdfc; color:var(--ink);
+  }
+  textarea{resize:vertical; min-height:60px;}
+
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px;
+    border:1px solid var(--ink); background:var(--focus); color:#fff;
+    padding:12px 20px; border-radius:2px; cursor:pointer; width:100%;
+  }
+  .btn:hover{background:#1f4238;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .sig-wrap{
+    border:1.5px dashed var(--line); border-radius:3px; background:#fdfdfc; position:relative;
+  }
+  .sig-wrap canvas{display:block; width:100%; height:150px; cursor:crosshair; border-radius:3px;}
+  .sig-hint{position:absolute; bottom:6px; left:10px; font-size:11px; color:var(--ink-soft); pointer-events:none;}
+  .sig-actions{display:flex; gap:10px; margin-top:8px; margin-bottom:16px;}
+  .btn-quiet{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
+    border:1px solid var(--line); background:var(--panel); color:var(--ink-soft);
+    padding:8px 16px; border-radius:2px; cursor:pointer;
+  }
+  .btn-quiet:hover{background:var(--line); color:var(--ink);}
+
+  .error-msg{color:var(--stamp); font-size:12.5px; margin-top:10px; min-height:16px;}
+  .jenis-badge{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase; padding:5px 12px; border:1.5px solid var(--brass);
+    color:var(--brass); border-radius:3px; margin-bottom:16px;
+  }
+  .center-msg{text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:14px;}
+  .success-box{
+    text-align:center; padding:50px 20px;
+  }
+  .success-box .check{font-size:48px; margin-bottom:12px;}
+  .success-box h2{margin-bottom:8px;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
+    padding:10px 20px; border-radius:3px; font-size:13px; z-index:999; opacity:0; pointer-events:none;
+    transition:opacity .25s ease; max-width:80vw; text-align:center;
+  }
+  .toast.show{opacity:1;}
+  .toast.error{background:var(--stamp);}
+
+  @media (max-width:640px){ .form-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="nameplate">
+  <div class="sub">PEMERINTAH KOTA TARAKAN</div>
+  <div class="sub">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>
+  <h1>SMP NEGERI 14 TARAKAN</h1>
+  <div class="addr">Jl. Bhayangkara RT 66 No. 42 Karang Anyar</div>
+</div>
+
+<div class="wrap" id="app-root">
+  <div class="center-msg">Memuat formulir…</div>
+</div>
+<div class="toast"></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = 'https://myvwsuxsfttuoxprmzsb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_p_2iyDthpvO3-7Tc24gWKA_suOqX2-j';
+  const root = document.getElementById('app-root');
+
+  async function sb(path, options={}){
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...(options.headers||{})
+    };
+    if(options.method && options.method !== 'GET' && !headers['Prefer']){
+      headers['Prefer'] = 'return=representation';
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...options, headers });
+    if(!res.ok){
+      let detail = '';
+      try{ const j = await res.json(); detail = j.message || JSON.stringify(j); }catch(e){ detail = res.statusText; }
+      throw new Error(`(${res.status}) ${detail}`);
+    }
+    if(res.status === 204) return null;
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+  const enc = encodeURIComponent;
+
+  function showToast(msg, type){
+    const el = document.querySelector('.toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (type==='error' ? ' error' : '');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>{ el.className='toast'; }, 2600);
+  }
+
+  // ---- Baca parameter ?tamu=... dari address bar ----
+  function resolveJenisTamu(){
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get('tamu') || '').trim().toLowerCase();
+    if(raw === 'umum') return 'Umum';
+    if(raw === 'khusus') return 'Khusus';
+    if(raw === 'wali/siswa' || raw === 'wali' || raw === 'siswa' || raw === 'walisiswa') return 'Wali/Siswa';
+    return null;
+  }
+
+  function isSiswaAktif(s){
+    const v = s.status_alumni;
+    if(v === null || v === undefined || v === '') return true;
+    if(typeof v === 'boolean') return !v;
+    const t = String(v).trim().toLowerCase();
+    return !['true','1','alumni','ya','yes','y','lulus'].includes(t);
+  }
+
+  function setupSignaturePad(canvas){
+    const ctx = canvas.getContext('2d');
+    let drawing = false, hasDrawn = false;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio; canvas.height = rect.height * ratio;
+      ctx.scale(ratio, ratio); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#202A24';
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    function pos(e){ const rect = canvas.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return { x: p.clientX-rect.left, y: p.clientY-rect.top }; }
+    function start(e){ e.preventDefault(); drawing=true; hasDrawn=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
+    function move(e){ if(!drawing) return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+    function end(){ drawing=false; }
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, {passive:false});
+    canvas.addEventListener('touchmove', move, {passive:false});
+    canvas.addEventListener('touchend', end);
+    canvas._clear = ()=>{ const rect=canvas.getBoundingClientRect(); ctx.clearRect(0,0,rect.width,rect.height); hasDrawn=false; };
+    canvas._hasDrawn = ()=> hasDrawn;
+    canvas._getDataUrl = ()=> canvas.toDataURL('image/png');
+  }
+
+  function renderInvalidLink(){
+    root.innerHTML = `
+      <div class="panel">
+        <h2>Link Tidak Valid</h2>
+        <div class="desc">
+          Formulir ini perlu dibuka lewat link resmi dari sekolah, dengan salah satu format berikut:
+        </div>
+        <ul style="font-size:13px; color:var(--ink-soft); line-height:1.9;">
+          <li class="mono">?tamu=umum</li>
+          <li class="mono">?tamu=khusus</li>
+          <li class="mono">?tamu=wali/siswa</li>
+        </ul>
+        <div class="desc">Silakan hubungi petugas piket untuk mendapatkan link yang benar.</div>
+      </div>
+    `;
+  }
+
+  function renderSuccess(){
+    root.innerHTML = `
+      <div class="panel success-box">
+        <div class="check">✅</div>
+        <h2>Terima Kasih!</h2>
+        <div class="desc">Data kunjungan Anda sudah tercatat. Selamat datang di SMP Negeri 14 Tarakan.</div>
+      </div>
+    `;
+  }
+
+  async function renderForm(jenisTamu, kelasList, siswaList){
+    const jenisLabel = jenisTamu === 'Wali/Siswa' ? 'Wali / Siswa' : jenisTamu;
+    root.innerHTML = `
+      <div class="panel">
+        <span class="jenis-badge">Tamu ${jenisLabel}</span>
+        <h2>Buku Tamu</h2>
+        <div class="desc">Silakan isi data kunjungan Anda dengan lengkap.</div>
+        <form id="tamu-form">
+          <div class="form-grid">
+            <div class="full"><label>Nama Tamu</label><input type="text" id="t-nama" required/></div>
+            <div><label>Instansi / Asal</label><input type="text" id="t-instansi"/></div>
+            <div><label>Jabatan</label><input type="text" id="t-jabatan"/></div>
+            <div class="full"><label>No. HP</label><input type="text" id="t-hp" class="mono"/></div>
+            ${jenisTamu === 'Wali/Siswa' ? `
+              <div class="full">
+                <div class="form-grid" style="margin:0;">
+                  <div>
+                    <label>Kelas yang Dituju</label>
+                    <select id="t-kelas">
+                      <option value="">Pilih kelas</option>
+                      ${kelasList.map(k=>`<option value="${k}">${k}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Nama Siswa</label>
+                    <select id="t-siswa"><option value="">Pilih kelas dahulu</option></select>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+            <div class="full">
+              <label>Maksud Kunjungan</label>
+              <textarea id="t-maksud" placeholder="Contoh: menjemput anak, urusan administrasi, kunjungan dinas, dsb."></textarea>
+            </div>
+            <div class="full">
+              <label>Tanda Tangan</label>
+              <div class="sig-wrap">
+                <canvas id="t-signature"></canvas>
+                <div class="sig-hint">Gambar tanda tangan di area ini</div>
+              </div>
+              <div class="sig-actions">
+                <button type="button" class="btn-quiet" id="t-sig-clear">Bersihkan Tanda Tangan</button>
+              </div>
+            </div>
+          </div>
+          <div class="error-msg" id="form-error"></div>
+          <button type="submit" class="btn" id="tamu-submit-btn">Simpan &amp; Kirim</button>
+        </form>
+      </div>
+    `;
+
+    const canvas = document.getElementById('t-signature');
+    setupSignaturePad(canvas);
+    document.getElementById('t-sig-clear').addEventListener('click', ()=> canvas._clear());
+
+    if(jenisTamu === 'Wali/Siswa'){
+      const kelasSel = document.getElementById('t-kelas');
+      const siswaSel = document.getElementById('t-siswa');
+      kelasSel.addEventListener('change', ()=>{
+        const opts = siswaList.filter(s=>s.kelas===kelasSel.value && isSiswaAktif(s));
+        siswaSel.innerHTML = `<option value="">Pilih siswa</option>` + opts.map(s=>`<option value="${s.nama}">${s.nama}</option>`).join('');
+      });
+    }
+
+    document.getElementById('tamu-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const errEl = document.getElementById('form-error');
+      errEl.textContent = '';
+      const nama = document.getElementById('t-nama').value.trim();
+      if(!nama){ errEl.textContent = 'Mohon isi nama tamu.'; return; }
+      if(!canvas._hasDrawn()){ errEl.textContent = 'Mohon bubuhkan tanda tangan Anda.'; return; }
+
+      const btn = document.getElementById('tamu-submit-btn');
+      btn.disabled = true; btn.textContent = 'Menyimpan…';
+      try{
+        const namaSiswa = jenisTamu === 'Wali/Siswa' ? document.getElementById('t-siswa').value : null;
+        const kelas = jenisTamu === 'Wali/Siswa' ? document.getElementById('t-kelas').value : null;
+        await sb('buku_tamu', {
+          method:'POST',
+          headers: { 'Prefer': 'return=minimal' },
+          body: JSON.stringify([{
+            tgl_catat: new Date().toISOString(),
+            operator: 'Mandiri (Tamu)',
+            nama,
+            instansi: document.getElementById('t-instansi').value.trim(),
+            jabatan: document.getElementById('t-jabatan').value.trim(),
+            no_hp: document.getElementById('t-hp').value.trim(),
+            maksut: document.getElementById('t-maksud').value.trim(),
+            jenis_tamu: jenisTamu,
+            nama_siswa: namaSiswa,
+            kelas: kelas,
+            tanda_tangan: canvas._getDataUrl(),
+          }])
+        });
+        renderSuccess();
+      }catch(err){
+        console.error(err);
+        errEl.textContent = 'Gagal menyimpan: ' + err.message;
+        btn.disabled = false; btn.textContent = 'Simpan & Kirim';
+      }
+    });
+  }
+
+  async function init(){
+    const jenisTamu = resolveJenisTamu();
+    if(!jenisTamu){ renderInvalidLink(); return; }
+
+    let kelasList = [], siswaList = [];
+    if(jenisTamu === 'Wali/Siswa'){
+      try{
+        const [kelasRes, siswaRes] = await Promise.all([
+          sb(`kelas?select=id,kls&order=id.asc`),
+          sb(`siswa?select=nama,kelas,status_alumni&order=kelas.asc,nama.asc`),
+        ]);
+        kelasList = (kelasRes||[]).map(k=>k.kls).filter(Boolean);
+        siswaList = siswaRes || [];
+      }catch(err){
+        console.error(err);
+        showToast('Gagal memuat data siswa: ' + err.message, 'error');
+      }
+    }
+    renderForm(jenisTamu, kelasList, siswaList);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
