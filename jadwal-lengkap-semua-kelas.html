@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Jadwal Lengkap Semua Kelas — SMP Negeri 14 Tarakan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy-deep:#0F1B33; --navy-mid:#16233F; --navy-line:#28365a;
+    --paper:#F3EEDD;
+    --gold:#C6A15B; --gold-soft:#dcc38c;
+    --kelas-header:#5B7FC7; --upacara:#8EC06C; --istirahat:#E07A72;
+    --ink:#1B2237; --muted:#8A93AC; --muted-2:#a9b1c7;
+    --row-even:#ffffff; --row-odd:#f4f1e6;
+    --disp:'Fraunces',serif; --body:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 15% -10%, #1a2a4d 0%, transparent 60%), var(--navy-deep);
+    color:var(--muted-2); font-family:var(--body); min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  header.letterhead{
+    padding:20px; border-bottom:1px solid var(--navy-line);
+    position:sticky; top:0; z-index:50; background:rgba(15,27,51,0.95); backdrop-filter:blur(10px);
+  }
+  .lh-inner{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between;}
+  .lh-left{display:flex; align-items:center; gap:14px;}
+  .seal{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-weight:600;font-size:14px;color:var(--gold-soft); flex:0 0 auto;}
+  h1{font-family:var(--disp);font-weight:600;font-size:19px;color:var(--paper);margin:0;}
+  .sub{font-size:11.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.5px;}
+  .term-select{display:flex; gap:8px; align-items:center;}
+  .term-select input, .term-select select{
+    background:var(--navy-deep); border:1px solid var(--navy-line); color:var(--paper);
+    font-family:var(--mono); font-size:12.5px; padding:8px 10px; border-radius:8px; min-height:38px;
+  }
+  .term-select input{width:110px;}
+
+  main{max-width:1180px; margin:0 auto; padding:22px 14px 70px;}
+
+  .day-nav{
+    display:flex; gap:6px; overflow-x:auto; margin-bottom:22px; padding-bottom:2px;
+  }
+  .day-nav a{
+    flex:0 0 auto; font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--muted-2);
+    background:var(--navy-mid); border:1px solid var(--navy-line); border-radius:8px;
+    padding:9px 14px; text-decoration:none; white-space:nowrap;
+  }
+  .day-nav a:hover{ border-color:var(--gold); color:var(--gold-soft); }
+
+  .day-block{ margin-bottom:34px; }
+  .day-title{
+    font-family:var(--disp); font-weight:600; font-size:20px; color:var(--paper);
+    margin:0 0 10px; display:flex; align-items:center; gap:10px;
+  }
+  .day-title .line{ flex:1; height:1px; background:var(--navy-line); }
+
+  .table-wrap{
+    background:#fff; border-radius:10px; overflow:hidden;
+    box-shadow:0 6px 24px rgba(0,0,0,0.3);
+  }
+  .scroll-x{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table.grid{ border-collapse:collapse; width:100%; min-width:1080px; font-size:12.5px; }
+  table.grid th, table.grid td{
+    border:1px solid #cfd3da; padding:8px 6px; text-align:center; color:var(--ink);
+  }
+  table.grid thead tr.kelas-row th{
+    background:var(--kelas-header); color:#fff; font-weight:700; font-size:12.5px;
+    position:sticky; top:0; z-index:2;
+  }
+  table.grid thead tr.hari-jam-row th{
+    background:#3f5aa3; color:#fff; font-size:11px; font-family:var(--mono);
+    position:sticky; top:33px; z-index:2;
+  }
+  table.grid td.jamcol, table.grid th.jamcol{
+    font-family:var(--mono); font-weight:600; white-space:nowrap;
+    position:sticky; left:0; background:#eef0f6; z-index:1;
+  }
+  table.grid td.waktucol, table.grid th.waktucol{
+    font-family:var(--mono); font-size:11px; white-space:nowrap;
+    position:sticky; left:52px; background:#eef0f6; z-index:1;
+  }
+  table.grid tbody tr:nth-child(even) td:not(.special){ background:var(--row-even); }
+  table.grid tbody tr:nth-child(odd) td:not(.special){ background:var(--row-odd); }
+  table.grid td.special{
+    font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:12px;
+  }
+  td.special.upacara{ background:var(--upacara); color:#1b3a12; }
+  td.special.istirahat{ background:var(--istirahat); color:#4a1310; }
+  td.special.literasi{ background:#F4D06F; color:#4a3a05; }
+  td.special.pembiasaan{ background:#B8A8D9; color:#2c1f45; }
+  td.special.pembimbingan_wali_kelas{ background:#8FCBD9; color:#0d3038; }
+
+  table.grid td.kosong{ color:#b7bcc9; font-style:italic; }
+  table.grid td .kode{ font-weight:600; }
+  table.grid td .guru{ display:block; font-size:9.5px; color:#6b7284; margin-top:1px; font-weight:400; }
+
+  .loading-note, .error-note{
+    color:var(--muted); font-family:var(--body); font-size:13.5px; padding:30px; text-align:center;
+  }
+  .error-note{ color:#e39b93; }
+  .legend{
+    display:flex; flex-wrap:wrap; gap:14px; margin:16px 0 26px; font-size:11.5px; color:var(--muted); font-family:var(--mono);
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .legend i{ width:12px;height:12px;border-radius:3px;display:inline-block; }
+</style>
+</head>
+<body>
+
+<header class="letterhead">
+  <div class="lh-inner">
+    <div class="lh-left">
+      <div class="seal">14</div>
+      <div>
+        <h1>Jadwal Lengkap Semua Kelas</h1>
+        <div class="sub">SMP Negeri 14 Tarakan &middot; Semester Ganjil 2025/2026</div>
+      </div>
+    </div>
+    <div class="term-select">
+      <input type="text" id="term-tahun" value="2025/2026" title="Tahun Ajaran">
+      <select id="term-semester" title="Semester">
+        <option value="GANJIL">Ganjil</option>
+        <option value="GENAP">Genap</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="day-nav" id="day-nav"></div>
+  <div class="legend">
+    <span><i style="background:var(--upacara)"></i>Upacara</span>
+    <span><i style="background:var(--istirahat)"></i>Istirahat</span>
+    <span><i style="background:#F4D06F"></i>Literasi</span>
+    <span><i style="background:#B8A8D9"></i>Pembiasaan</span>
+    <span><i style="background:#8FCBD9"></i>Pembimbingan Wali Kelas</span>
+  </div>
+
+  <div id="content">
+    <div class="loading-note">Memuat jadwal dari Supabase…</div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://myjyxpcdyzaydqxlyeee.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4UhZdrW-8Oy1aR31VdSCrA_m5CgcqeA";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const HARI_LIST = ["SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"];
+const HARI_LABEL = {SENIN:"Senin",SELASA:"Selasa",RABU:"Rabu",KAMIS:"Kamis",JUMAT:"Jumat",SABTU:"Sabtu"};
+const JENIS_LABEL = {
+  UPACARA:"Upacara Bendera", ISTIRAHAT:"Istirahat", LITERASI:"Literasi",
+  PEMBIASAAN:"Pembiasaan", PEMBIMBINGAN_WALI_KELAS:"Pembimbingan Wali Kelas"
+};
+const KELAS_ORDER = ["VII-1","VII-2","VII-3","VII-4","VIII-1","VIII-2","VIII-3","VIII-4","IX-1","IX-2","IX-3"];
+
+function fmtTime(t){ return t ? t.slice(0,5).replace(':','.') : ''; }
+
+async function loadAll(){
+  const tahun = document.getElementById('term-tahun').value.trim();
+  const semester = document.getElementById('term-semester').value;
+  const contentEl = document.getElementById('content');
+  contentEl.innerHTML = `<div class="loading-note">Memuat jadwal dari Supabase…</div>`;
+
+  try{
+    const [{data:slots, error:eS}, {data:kelasRows, error:eK}, {data:jadwal, error:eJ}] = await Promise.all([
+      sb.from('slot_waktu').select('*').order('hari').order('jam_mulai'),
+      sb.from('kelas').select('nama_kelas').order('nama_kelas'),
+      sb.from('jadwal_pelajaran')
+        .select('kelas_id, kode_pengajar_id, slot:slot_waktu_id(id,hari,jam_ke,jam_mulai,jam_selesai,jenis_slot), pengajar:kode_pengajar_id(kode, guru:guru_id(nama), mapel:mata_pelajaran_id(nama_mapel))')
+        .eq('tahun_ajaran', tahun).eq('semester', semester),
+    ]);
+    if(eS) throw eS; if(eK) throw eK; if(eJ) throw eJ;
+
+    const kelasList = KELAS_ORDER.filter(k => (kelasRows||[]).some(r=>r.nama_kelas===k));
+    const finalKelasList = kelasList.length ? kelasList : (kelasRows||[]).map(r=>r.nama_kelas);
+
+    // index jadwal by slot_waktu_id + kelas
+    const jMap = new Map(); // key: slotId|kelas -> row
+    (jadwal||[]).forEach(r=>{
+      if(!r.slot) return;
+      jMap.set(r.slot.id + '|' + r.kelas_id, r);
+    });
+
+    buildDayNav();
+    renderAllDays(slots||[], finalKelasList, jMap, tahun, semester);
+  }catch(err){
+    contentEl.innerHTML = `<div class="error-note">Gagal memuat data: ${err.message||err}</div>`;
+  }
+}
+
+function buildDayNav(){
+  const nav = document.getElementById('day-nav');
+  nav.innerHTML = HARI_LIST.map(h=>`<a href="#hari-${h}">${HARI_LABEL[h]}</a>`).join('');
+}
+
+function renderAllDays(slots, kelasList, jMap, tahun, semester){
+  const contentEl = document.getElementById('content');
+  contentEl.innerHTML = HARI_LIST.map(hari=>{
+    const daySlots = slots.filter(s=>s.hari===hari).sort((a,b)=> a.jam_mulai.localeCompare(b.jam_mulai));
+    return renderDayBlock(hari, daySlots, kelasList, jMap);
+  }).join('');
+}
+
+function renderDayBlock(hari, daySlots, kelasList, jMap){
+  const kelasHeaderCells = kelasList.map(k=>`<th>${k}</th>`).join('');
+
+  const rows = daySlots.map(s=>{
+    const time = `${fmtTime(s.jam_mulai)}–${fmtTime(s.jam_selesai)}`;
+    if(s.jenis_slot !== 'REGULER'){
+      const cls = s.jenis_slot.toLowerCase();
+      return `<tr>
+        <td class="jamcol">–</td>
+        <td class="waktucol">${time}</td>
+        <td class="special ${cls}" colspan="${kelasList.length}">${JENIS_LABEL[s.jenis_slot]||s.jenis_slot}</td>
+      </tr>`;
+    }
+    const cells = kelasList.map(k=>{
+      const row = jMap.get(s.id + '|' + k);
+      if(!row || !row.pengajar){
+        return `<td class="kosong">—</td>`;
+      }
+      const kode = row.pengajar.kode || '';
+      const guruNama = row.pengajar.guru?.nama || '';
+      return `<td><span class="kode">${kode}</span>${guruNama?`<span class="guru">${guruNama}</span>`:''}</td>`;
+    }).join('');
+    return `<tr>
+      <td class="jamcol">${s.jam_ke ?? '-'}</td>
+      <td class="waktucol">${time}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="day-block" id="hari-${hari}">
+    <h2 class="day-title">${HARI_LABEL[hari]}<span class="line"></span></h2>
+    <div class="table-wrap">
+      <div class="scroll-x">
+        <table class="grid">
+          <thead>
+            <tr class="kelas-row">
+              <th class="jamcol" rowspan="2">Jam Ke</th>
+              <th class="waktucol" rowspan="2">Waktu</th>
+              <th colspan="${kelasList.length}">Kelas</th>
+            </tr>
+            <tr class="hari-jam-row">${kelasHeaderCells}</tr>
+          </thead>
+          <tbody>${rows || `<tr><td colspan="${kelasList.length+2}" style="padding:20px;color:#888;">Belum ada jadwal untuk hari ini.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+document.getElementById('term-tahun').addEventListener('change', loadAll);
+document.getElementById('term-semester').addEventListener('change', loadAll);
+
+loadAll();
+</script>
+</body>
+</html>
